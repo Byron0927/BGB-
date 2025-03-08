@@ -26,12 +26,16 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
+
 # ---- HEADER SECTIONS ----
 
 with st.container():
     st.title("漢堡巴士路線")
     st.subheader("可在此查閱漢堡巴士各路線的詳細資料。")
     st.write("[可參考 >](https://docs.google.com/spreadsheets/d/1_hF_4ObI7j7OKKa__Bs9-fCLS6jYLvtTxg_nzhzkLjU/edit?gid=956048970#gid=956048970)")
+
+# 創建兩欄 (左 2 右 3)
+col1, col2 = st.columns([2, 3])
 
 # ---- ROUTES DETAILS ----
 
@@ -89,48 +93,47 @@ route_service_time = {
 
 # ---- ROUTES SEARCH ----
 
-routeEnquiry = " "
-routeEnquiryRoute = " "
+routeEnquiry = ""
+routeEnquiryRoute = ""
 
-with st.container():
-    st.title("路線查詢")
+# ---- 左側 (輸入查詢) ----
+with col1:
+    st.subheader("🔍 查詢路線")
+    routeEnquiry = st.text_input("輸入要查詢的路線編號:", "1").strip()
+    routeEnquiryRoute = st.text_input("輸入路線編號_總站代號+走線, e.g. 1_MAF1", "1_MAF1").strip().upper()  # 確保大寫
 
-    routeEnquiry = st.text_input("輸入要查詢的路線編號:", "1")
-    routeEnquiryRoute = st.text_input("路線編號_總站代號+走線, e.g. 1_MAF1", "1_MAF1")
+# ---- 右側 (顯示結果) ----
+with col2:
+    st.subheader("📌 查詢結果")
 
-    if routeEnquiry and routeEnquiryRoute:
-        if routeEnquiry in route_directions:
-            directions = route_directions[routeEnquiry]
+    if routeEnquiryRoute:
+        st.write(f"**方向:** {routeEnquiryRoute}")
 
-            # 確保查詢的走線在可選方向內
-            if routeEnquiryRoute in directions:
-                st.subheader(f"路線方向: {routeEnquiryRoute}")
-                st.write(f"可選擇的方向: {', '.join(directions)}")
-
-                # 顯示車站資訊
-                if routeEnquiryRoute in route_stops:
-                    st.subheader(f"車站列表 ({routeEnquiryRoute})")
-                    for stop in route_stops[routeEnquiryRoute]:
-                        st.write(stop)
-                else:
-                    st.error("無法找到該路線的車站資料，請檢查輸入是否正確。")
-                    
-                # 查詢收費資訊
-                if routeEnquiryRoute in route_fare:
-                    st.subheader("收費資訊")
-                    for fare in route_fare[routeEnquiryRoute]:
-                        st.write(fare)
-                else:
-                    st.error("找不到該路線的收費資訊，請檢查輸入。")
-
-                # 顯示服務時間
-                if routeEnquiryRoute in route_service_time:
-                    st.subheader("服務時間")
-                    st.write(f"{route_service_time[routeEnquiryRoute]}")
-                else:
-                    st.error("無法找到該路線的服務時間，請檢查輸入是否正確。")
-
-            else:
-                st.error("無效的方向選項，請輸入正確的總站代號+走線。")
+        # 直接使用 `routeEnquiryRoute` 作為 key
+        route_key = routeEnquiryRoute  # 🔥 這裡修正，不再重複加 `routeEnquiry`
+        
+        # 顯示車站資料
+        if route_key in route_stops:
+            st.subheader(f"🚏 車站列表 ({routeEnquiryRoute})")
+            for stop in route_stops[route_key]:
+                st.write(stop)
         else:
-            st.error("找不到該路線的方向資訊，請確認輸入是否正確。")
+            st.error("⚠️ 無法找到該路線的車站資料，請檢查輸入是否正確。")
+
+        # 顯示收費資訊
+        if route_key in route_fare:
+            st.subheader("💰 車費資訊")
+            for fare in route_fare[route_key]:
+                st.write(fare)
+        else:
+            st.error("⚠️ 找不到該路線的收費資訊，請檢查輸入。")
+
+        # 顯示服務時間
+        if route_key in route_service_time:
+            st.subheader("⏰ 服務時間")
+            st.write(f"{route_service_time[route_key]}")
+        else:
+            st.error("⚠️ 無法找到該路線的服務時間，請檢查輸入是否正確。")
+
+    else:
+        st.warning("請輸入正確的路線編號和總站代號。")
